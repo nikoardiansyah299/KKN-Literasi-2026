@@ -111,7 +111,7 @@ function App() {
     setMessage("");
   }
 
-  async function loadCatalog(page = 1) {
+  async function loadCatalog(page = 1, attempt = 0) {
     try {
       const params = new URLSearchParams({
         page: String(page),
@@ -126,6 +126,11 @@ function App() {
       setCatalog(data.items || []);
       setCatalogMeta({ page: data.page || 1, pageSize: data.pageSize || 12, total: data.total || 0 });
     } catch (err) {
+      if (attempt === 0) {
+        await new Promise((resolve) => setTimeout(resolve, 800));
+        return loadCatalog(page, 1);
+      }
+
       setCatalog(fallbackBooks);
       setCatalogMeta({ page: 1, pageSize: 12, total: fallbackBooks.length });
       setError(err.message || "Using local fallback catalog because the API is unavailable.");
