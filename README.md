@@ -69,17 +69,13 @@ Seed initial data:
 npm run seed:server
 ```
 
-Run backend:
+Run both together:
 
 ```bash
-npm run dev:server
+npm run dev
 ```
 
-Run frontend:
-
-```bash
-npm run dev:client
-```
+This starts the backend API and the Vite frontend together so requests to `/api` are proxied correctly.
 
 Frontend URL (default): `http://localhost:5173`
 Backend URL (default): `http://localhost:4000`
