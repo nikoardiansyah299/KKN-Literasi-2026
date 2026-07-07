@@ -37,13 +37,13 @@ A full-stack website for managing a library catalog for users and admins.
 
 ## Tech Stack
 
-- Backend: Node.js, Express, better-sqlite3, JWT auth
+- Backend: Node.js, Express, Prisma Client, JWT auth
 - Frontend: React + Vite
-- Database: SQLite (`server/data/library.db`)
+- Database: PostgreSQL on Aiven managed with Prisma
 
 ## Project Structure
 
-- `server` - backend API and SQLite data
+- `server` - backend API and Prisma schema
 - `client` - React frontend UI
 
 ## Quick Start
@@ -54,6 +54,14 @@ Install dependencies:
 npm --prefix server install
 npm --prefix client install
 ```
+
+Configure backend env first:
+
+```bash
+copy server/.env.example server/.env
+```
+
+Set `DATABASE_URL` in `server/.env` using your Aiven connection string.
 
 Seed initial data:
 
@@ -103,8 +111,9 @@ npm test
 
 ## Environment Variables
 
-Backend optional env vars:
+Backend env vars:
 
+- `DATABASE_URL` Prisma PostgreSQL URL for Aiven (for example `postgresql://user:pass@host:port/defaultdb?sslmode=require`)
 - `PORT` (default `4000`)
 - `JWT_SECRET` (default `library-dev-secret`)
 - `DAILY_LATE_FEE` (default `2000`)
@@ -113,3 +122,13 @@ Backend optional env vars:
 Frontend optional env var:
 
 - `VITE_API_BASE` (default `http://localhost:4000/api`)
+
+Prisma setup commands:
+
+```bash
+npm run prisma:generate:server
+npm run prisma:push:server
+npm run prisma:studio:server
+npm run prisma:migrate:dev:server
+npm run prisma:migrate:deploy:server
+```

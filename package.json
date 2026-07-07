@@ -1,7 +1,7 @@
 {
   "name": "kkn-literasi-2026",
   "version": "1.0.0",
-  "description": "Library catalog portal (Express + SQLite + React)",
+  "description": "Library catalog portal (Express + Prisma + React)",
   "main": "index.js",
   "scripts": {
     "dev:server": "npm --prefix server run dev",
@@ -9,10 +9,18 @@
     "build:client": "npm --prefix client run build",
     "seed:server": "npm --prefix server run seed",
     "smoke:server": "npm --prefix server run smoke",
+    "prisma:generate:server": "npm --prefix server run prisma:generate",
+    "prisma:push:server": "npm --prefix server run prisma:push",
+    "prisma:studio:server": "npm --prefix server run prisma:studio",
+    "prisma:migrate:dev:server": "npm --prefix server run prisma:migrate:dev",
+    "prisma:migrate:deploy:server": "npm --prefix server run prisma:migrate:deploy",
     "test": "npm --prefix client run build && npm --prefix server run smoke"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "type": "commonjs"
+  "type": "commonjs",
+  "devDependencies": {
+    "concurrently": "^10.0.3"
+  }
 }

@@ -1,0 +1,47 @@
+export const fallbackBooks = [
+  {
+    id: 1,
+    title: "The Knowledge Atlas",
+    author: "Mira Aditya",
+    catalog_number: 12,
+    catalog_number_label: "012",
+    description: "A general reference guide for community learning.",
+    availability: {
+      totalCopies: 3,
+      activeLoans: 0,
+      activeReservations: 0,
+      availableCopies: 3,
+      status: "available",
+    },
+  },
+  {
+    id: 2,
+    title: "Digital Literacy Basics",
+    author: "Raka Firmansyah",
+    catalog_number: 35,
+    catalog_number_label: "035",
+    description: "Practical lessons for digital citizenship and everyday technology.",
+    availability: {
+      totalCopies: 2,
+      activeLoans: 1,
+      activeReservations: 0,
+      availableCopies: 1,
+      status: "available",
+    },
+  },
+  {
+    id: 3,
+    title: "History of Nusantara",
+    author: "Sinta Wibowo",
+    catalog_number: 109,
+    catalog_number_label: "109",
+    description: "A concise regional history overview for learners.",
+    availability: {
+      totalCopies: 4,
+      activeLoans: 2,
+      activeReservations: 1,
+      availableCopies: 2,
+      status: "reserved",
+    },
+  },
+];

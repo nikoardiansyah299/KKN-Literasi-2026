@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
 import "./App.css";
+import { fallbackBooks } from "./fallbackBooks";
 
-const API_BASE = import.meta.env.VITE_API_BASE || "http://localhost:4000/api";
+const API_BASE = import.meta.env.VITE_API_BASE || (typeof window !== "undefined" ? `${window.location.origin}/api` : "/api");
 
 async function api(path, options = {}, token = null) {
   const headers = {
@@ -21,11 +22,22 @@ async function api(path, options = {}, token = null) {
     return null;
   }
 
-  const payload = await response.json();
-  if (!response.ok) {
-    throw new Error(payload.message || "Request failed");
+  const text = await response.text();
+  let payload = null;
+
+  if (text) {
+    try {
+      payload = JSON.parse(text);
+    } catch (_error) {
+      payload = { message: text };
+    }
   }
-  return payload;
+
+  if (!response.ok) {
+    throw new Error(payload?.message || "Request failed");
+  }
+
+  return payload ?? {};
 }
 
 function App() {
@@ -111,10 +123,12 @@ function App() {
         params.set("search", search.trim());
       }
       const data = await api(`/catalog?${params.toString()}`);
-      setCatalog(data.items);
-      setCatalogMeta({ page: data.page, pageSize: data.pageSize, total: data.total });
+      setCatalog(data.items || []);
+      setCatalogMeta({ page: data.page || 1, pageSize: data.pageSize || 12, total: data.total || 0 });
     } catch (err) {
-      setError(err.message);
+      setCatalog(fallbackBooks);
+      setCatalogMeta({ page: 1, pageSize: 12, total: fallbackBooks.length });
+      setError(err.message || "Using local fallback catalog because the API is unavailable.");
     }
   }
 
@@ -145,12 +159,17 @@ function App() {
   async function loadUserData() {
     if (!token || !isUser) return;
     try {
-      const [userLoans, userNotifications] = await Promise.all([
+      const [userLoans, userNotifications] = await Promise.allSettled([
         api("/me/loans", {}, token),
         api("/me/notifications", {}, token),
       ]);
-      setLoans(userLoans);
-      setNotifications(userNotifications);
+
+      if (userLoans.status === "fulfilled") {
+        setLoans(userLoans.value);
+      }
+      if (userNotifications.status === "fulfilled") {
+        setNotifications(userNotifications.value);
+      }
     } catch (err) {
       setError(err.message);
     }
