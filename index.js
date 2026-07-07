@@ -1,9 +1,9 @@
 const path = require('path');
 const express = require('express');
 
-const apiApp = require('../server/src/server');
+const apiApp = require('./server/src/server');
 
-const staticDir = path.join(__dirname, '..', 'client', 'dist');
+const staticDir = path.join(__dirname, 'client', 'dist');
 const app = express();
 
 app.use(express.static(staticDir));
