@@ -1,28 +1,35 @@
 {
   "name": "kkn-literasi-2026",
   "version": "1.0.0",
-  "description": "Library catalog portal (Express + Prisma + React)",
-  "main": "index.js",
+  "private": true,
+  "type": "module",
   "scripts": {
-    "dev": "concurrently \"npm run dev:server\" \"npm run dev:client\"",
-    "dev:server": "npm --prefix server run dev",
-    "dev:client": "npm --prefix client run dev",
-    "build": "npm --prefix client run build",
-    "build:client": "npm --prefix client run build",
-    "seed:server": "npm --prefix server run seed",
-    "smoke:server": "npm --prefix server run smoke",
-    "prisma:generate:server": "npm --prefix server run prisma:generate",
-    "prisma:push:server": "npm --prefix server run prisma:push",
-    "prisma:studio:server": "npm --prefix server run prisma:studio",
-    "prisma:migrate:dev:server": "npm --prefix server run prisma:migrate:dev",
-    "prisma:migrate:deploy:server": "npm --prefix server run prisma:migrate:deploy",
-    "test": "npm --prefix client run build && npm --prefix server run smoke"
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "seed": "node src/lib/seed.js",
+    "prisma:generate": "prisma generate",
+    "prisma:push": "prisma db push",
+    "prisma:studio": "prisma studio"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "type": "commonjs",
+  "dependencies": {
+    "@prisma/adapter-pg": "^7.8.0",
+    "@prisma/client": "^7.8.0",
+    "bcryptjs": "^3.0.3",
+    "dotenv": "^17.4.2",
+    "jsonwebtoken": "^9.0.3",
+    "next": "^16.2.10",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0",
+    "zod": "^4.4.3"
+  },
   "devDependencies": {
-    "concurrently": "^10.0.3"
+    "@tailwindcss/postcss": "^4.1.10",
+    "@types/react": "19.2.17",
+    "autoprefixer": "^10.4.20",
+    "postcss": "^8.4.49",
+    "tailwindcss": "^4.1.10",
+    "tsx": "^4.23.0",
+    "typescript": "5.8.2"
   }
 }
