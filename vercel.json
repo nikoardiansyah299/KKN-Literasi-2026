@@ -4,10 +4,7 @@
   "builds": [
     {
       "src": "api/index.js",
-      "use": "@vercel/node",
-      "config": {
-        "includeFiles": ["server/**", "client/dist/**", "package.json", "package-lock.json"]
-      }
+      "use": "@vercel/node"
     }
   ],
   "routes": [
