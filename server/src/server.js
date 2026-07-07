@@ -1,11 +1,33 @@
-require("dotenv").config();
+try {
+  require("dotenv").config();
+} catch (error) {
+  console.warn("dotenv is not available; continuing without it.");
+}
 
-const express = require("express");
-const cors = require("cors");
-const bcrypt = require("bcryptjs");
-const { z } = require("zod");
-const { ready, query, transaction, toBookResponse, getBookAvailability } = require("./db");
-const { signToken, authenticate, authorizeRole } = require("./auth");
+let express;
+let cors;
+let bcrypt;
+let z;
+let ready;
+let query;
+let transaction;
+let toBookResponse;
+let getBookAvailability;
+let signToken;
+let authenticate;
+let authorizeRole;
+
+try {
+  express = require("express");
+  cors = require("cors");
+  bcrypt = require("bcryptjs");
+  ({ z } = require("zod"));
+  ({ ready, query, transaction, toBookResponse, getBookAvailability } = require("./db"));
+  ({ signToken, authenticate, authorizeRole } = require("./auth"));
+} catch (error) {
+  console.error("Failed to load server runtime dependencies:", error);
+  throw error;
+}
 
 const app = express();
 const PORT = process.env.PORT || 4000;
