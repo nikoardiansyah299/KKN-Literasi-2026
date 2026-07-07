@@ -3,7 +3,11 @@
   "installCommand": "npm install",
   "builds": [
     {
+<<<<<<< HEAD
       "src": "index.js",
+=======
+      "src": "api/index.js",
+>>>>>>> 41a605bb75d7909716329009be5bb83a03991b0f
       "use": "@vercel/node"
     }
   ],
@@ -14,7 +18,11 @@
     },
     {
       "src": "/(.*)",
+<<<<<<< HEAD
       "dest": "/index.js"
+=======
+      "dest": "/api/index.js"
+>>>>>>> 41a605bb75d7909716329009be5bb83a03991b0f
     }
   ]
 }
