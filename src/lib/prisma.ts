@@ -9,15 +9,19 @@ dotenv.config();
 const rawConnectionString = process.env.DATABASE_URL;
 
 if (!rawConnectionString) {
-  throw new Error('DATABASE_URL is required');
+  console.warn('DATABASE_URL is not set; Prisma will be initialized with the raw value if available.');
 }
 
 const connectionString = (() => {
-  const url = new URL(rawConnectionString);
-  if (process.env.VERCEL === '1') {
-    url.searchParams.set('sslmode', 'no-verify');
+  try {
+    const url = new URL(rawConnectionString || 'postgres://localhost:5432/postgres');
+    if (process.env.VERCEL === '1') {
+      url.searchParams.set('sslmode', 'no-verify');
+    }
+    return url.toString();
+  } catch {
+    return rawConnectionString || 'postgres://localhost:5432/postgres';
   }
-  return url.toString();
 })();
 
 // In development only: allow self-signed certificates from the DB host
