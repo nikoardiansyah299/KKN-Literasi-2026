@@ -12,13 +12,6 @@ if (!connectionString) {
   throw new Error('DATABASE_URL is required');
 }
 
-// Development convenience: allow self-signed certs locally only.
-if (process.env.NODE_ENV !== 'production') {
-  // eslint-disable-next-line no-process-env
-  process.env.NODE_TLS_REJECT_UNAUTHORIZED = process.env.NODE_TLS_REJECT_UNAUTHORIZED ?? '0';
-  console.warn('Warning: NODE_TLS_REJECT_UNAUTHORIZED=0 set for development (insecure)');
-}
-
 // In development only: allow self-signed certificates from the DB host
 // (useful for hosted dev DBs with self-signed chains). Do NOT enable in production.
 // NOTE: Do not disable TLS verification globally here. If you need to
