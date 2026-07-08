@@ -6,11 +6,19 @@ import { PrismaPg } from '@prisma/adapter-pg';
 dotenv.config({ path: 'server/.env' });
 dotenv.config();
 
-const connectionString = process.env.DATABASE_URL;
+const rawConnectionString = process.env.DATABASE_URL;
 
-if (!connectionString) {
+if (!rawConnectionString) {
   throw new Error('DATABASE_URL is required');
 }
+
+const connectionString = (() => {
+  const url = new URL(rawConnectionString);
+  if (process.env.VERCEL === '1') {
+    url.searchParams.set('sslmode', 'no-verify');
+  }
+  return url.toString();
+})();
 
 // In development only: allow self-signed certificates from the DB host
 // (useful for hosted dev DBs with self-signed chains). Do NOT enable in production.

@@ -1,14 +1,13 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { prisma } from '@/lib/prisma';
-import { getBookAvailability } from '@/lib/data';
+import { getBookAvailability, getBookById } from '@/lib/data';
 import { getSessionUser } from '@/lib/auth';
 import { requestBorrow, reserveBook } from '@/lib/actions';
 
 export default async function BookDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const user = await getSessionUser();
-  const book = await prisma.book.findUnique({ where: { id: Number(id) } });
+  const book = await getBookById(Number(id));
   if (!book) notFound();
 
   const availability = await getBookAvailability(book.id);

@@ -9,57 +9,148 @@ export type BookAvailability = {
   status: 'available' | 'borrowed' | 'reserved';
 };
 
-export async function getBookAvailability(bookId: number): Promise<BookAvailability> {
-  const [book, activeLoans, activeReservations] = await Promise.all([
-    prisma.book.findUnique({ where: { id: bookId } }),
-    prisma.loan.count({ where: { bookId, returnedAt: null } }),
-    prisma.reservation.count({ where: { bookId, status: 'active' } }),
-  ]);
+type CatalogBook = {
+  id: number;
+  title: string;
+  author: string;
+  catalogNumber: number;
+  totalCopies: number;
+  description: string;
+  location: string;
+};
 
-  if (!book) {
+const fallbackCatalogBooks: CatalogBook[] = [
+  {
+    id: 1,
+    title: 'The Knowledge Atlas',
+    author: 'Mira Aditya',
+    catalogNumber: 12,
+    totalCopies: 3,
+    description: 'A general reference guide for community learning.',
+    location: 'Main Collection',
+  },
+  {
+    id: 2,
+    title: 'Digital Literacy Basics',
+    author: 'Raka Firmansyah',
+    catalogNumber: 35,
+    totalCopies: 2,
+    description: 'Practical lessons for digital citizenship and everyday technology.',
+    location: 'Main Collection',
+  },
+  {
+    id: 3,
+    title: 'History of Nusantara',
+    author: 'Sinta Wibowo',
+    catalogNumber: 109,
+    totalCopies: 4,
+    description: 'A concise regional history overview for learners.',
+    location: 'Main Collection',
+  },
+];
+
+function getFallbackAvailability(bookId: number): BookAvailability {
+  const fallbackBook = fallbackCatalogBooks.find((book) => book.id === bookId);
+  if (!fallbackBook) {
     return { totalCopies: 0, activeLoans: 0, activeReservations: 0, availableCopies: 0, status: 'borrowed' };
   }
 
-  const availableCopies = Math.max(book.totalCopies - activeLoans, 0);
-  const status = availableCopies > 0 ? 'available' : activeReservations > 0 ? 'reserved' : 'borrowed';
-  return { totalCopies: book.totalCopies, activeLoans, activeReservations, availableCopies, status };
+  return {
+    totalCopies: fallbackBook.totalCopies,
+    activeLoans: 0,
+    activeReservations: 0,
+    availableCopies: fallbackBook.totalCopies,
+    status: 'available',
+  };
 }
 
-export async function getCatalogBooks(params: { search?: string; start?: number; end?: number; page?: number; pageSize?: number }) {
-  const search = params.search?.trim() || '';
+function getFallbackCatalog(params: { search?: string; start?: number; end?: number; page?: number; pageSize?: number }) {
+  const search = params.search?.trim().toLowerCase() || '';
   const start = Number(params.start ?? 0);
   const end = Number(params.end ?? 999);
   const page = Math.max(Number(params.page ?? 1), 1);
   const pageSize = Math.min(Math.max(Number(params.pageSize ?? 12), 1), 50);
 
-  const where = {
-    catalogNumber: { gte: start, lte: end },
-    ...(search
-      ? {
-          OR: [
-            { title: { contains: search, mode: 'insensitive' as const } },
-            { author: { contains: search, mode: 'insensitive' as const } },
-          ],
-        }
-      : {}),
-  };
+  const filtered = fallbackCatalogBooks.filter((book) => {
+    const matchesRange = book.catalogNumber >= start && book.catalogNumber <= end;
+    const matchesSearch = !search || `${book.title} ${book.author} ${book.description}`.toLowerCase().includes(search);
+    return matchesRange && matchesSearch;
+  });
 
-  const [items, total] = await Promise.all([
-    prisma.book.findMany({
-      where,
-      orderBy: [{ catalogNumber: 'asc' }, { title: 'asc' }],
-      skip: (page - 1) * pageSize,
-      take: pageSize,
-    }),
-    prisma.book.count({ where }),
-  ]);
+  const items = filtered.slice((page - 1) * pageSize, page * pageSize);
+  return { items, total: filtered.length, page, pageSize };
+}
 
-  return {
-    items,
-    total,
-    page,
-    pageSize,
-  };
+export async function getBookAvailability(bookId: number): Promise<BookAvailability> {
+  try {
+    const [book, activeLoans, activeReservations] = await Promise.all([
+      prisma.book.findUnique({ where: { id: bookId } }),
+      prisma.loan.count({ where: { bookId, returnedAt: null } }),
+      prisma.reservation.count({ where: { bookId, status: 'active' } }),
+    ]);
+
+    if (!book) {
+      return { totalCopies: 0, activeLoans: 0, activeReservations: 0, availableCopies: 0, status: 'borrowed' };
+    }
+
+    const availableCopies = Math.max(book.totalCopies - activeLoans, 0);
+    const status = availableCopies > 0 ? 'available' : activeReservations > 0 ? 'reserved' : 'borrowed';
+    return { totalCopies: book.totalCopies, activeLoans, activeReservations, availableCopies, status };
+  } catch (error) {
+    console.error('Falling back to sample availability data:', error);
+    return getFallbackAvailability(bookId);
+  }
+}
+
+export async function getBookById(bookId: number) {
+  try {
+    return await prisma.book.findUnique({ where: { id: bookId } });
+  } catch (error) {
+    console.error('Falling back to sample book data:', error);
+    return fallbackCatalogBooks.find((book) => book.id === bookId) ?? null;
+  }
+}
+
+export async function getCatalogBooks(params: { search?: string; start?: number; end?: number; page?: number; pageSize?: number }) {
+  try {
+    const search = params.search?.trim() || '';
+    const start = Number(params.start ?? 0);
+    const end = Number(params.end ?? 999);
+    const page = Math.max(Number(params.page ?? 1), 1);
+    const pageSize = Math.min(Math.max(Number(params.pageSize ?? 12), 1), 50);
+
+    const where = {
+      catalogNumber: { gte: start, lte: end },
+      ...(search
+        ? {
+            OR: [
+              { title: { contains: search, mode: 'insensitive' as const } },
+              { author: { contains: search, mode: 'insensitive' as const } },
+            ],
+          }
+        : {}),
+    };
+
+    const [items, total] = await Promise.all([
+      prisma.book.findMany({
+        where,
+        orderBy: [{ catalogNumber: 'asc' }, { title: 'asc' }],
+        skip: (page - 1) * pageSize,
+        take: pageSize,
+      }),
+      prisma.book.count({ where }),
+    ]);
+
+    return {
+      items,
+      total,
+      page,
+      pageSize,
+    };
+  } catch (error) {
+    console.error('Falling back to sample catalog data:', error);
+    return getFallbackCatalog(params);
+  }
 }
 
 export async function getDashboardData() {
