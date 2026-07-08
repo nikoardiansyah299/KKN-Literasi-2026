@@ -1,10 +1,19 @@
 import dotenv from 'dotenv';
+import fs from 'fs';
+import path from 'path';
 import { PrismaClient } from '@prisma/client';
 import { PrismaPg } from '@prisma/adapter-pg';
 
 // Load server/.env first (contains DATABASE_URL with sslrootcert), then root .env.
 dotenv.config({ path: 'server/.env' });
 dotenv.config();
+
+const caEnv = process.env.AIVEN_CA_PEM || process.env.CA_PEM;
+const caPath = path.join(process.cwd(), 'server', 'ca.pem');
+if (!fs.existsSync(caPath) && caEnv) {
+  fs.mkdirSync(path.dirname(caPath), { recursive: true });
+  fs.writeFileSync(caPath, caEnv);
+}
 
 const connectionString = process.env.DATABASE_URL;
 

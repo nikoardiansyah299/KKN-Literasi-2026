@@ -5,7 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "next dev",
-    "build": "npx prisma generate && next build",
+    "vercel-build": "node scripts/write-ca.js && npx prisma generate && next build",
+    "build": "node scripts/write-ca.js && npx prisma generate && next build",
     "start": "next start",
     "seed": "node src/lib/seed.js",
     "prisma:generate": "prisma generate",
