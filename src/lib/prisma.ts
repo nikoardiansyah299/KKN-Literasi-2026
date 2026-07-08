@@ -1,5 +1,5 @@
 import dotenv from 'dotenv';
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient } from '.prisma/client';
 import { PrismaPg } from '@prisma/adapter-pg';
 
 // Load server/.env first (contains DATABASE_URL with sslrootcert), then root .env.
