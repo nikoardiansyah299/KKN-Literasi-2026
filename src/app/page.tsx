@@ -115,10 +115,9 @@ export default async function HomePage() {
         </div>
       </div>
 
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="grid gap-4 xl:grid-cols-[1.2fr_0.8fr]">
-          <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-          <div className="flex items-center gap-3">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 space-y-12">
+        <div className="space-y-6">
+          <div className="flex flex-col items-center text-center gap-3">
             <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-indigo-50 text-indigo-600">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="h-5 w-5">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M7 6v12m10-12v12M4 18h16" />
@@ -130,10 +129,10 @@ export default async function HomePage() {
             </div>
           </div>
 
-          <div className="mt-5 grid gap-4 sm:grid-cols-2">
+          <div className="grid gap-4 md:grid-cols-3">
             {highlights.map((item) => (
-              <div key={item.title} className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
-                <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-white text-indigo-600 shadow-sm">
+              <div key={item.title} className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+                <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-indigo-50 text-indigo-600 shadow-sm">
                   {item.icon}
                 </div>
                 <p className="mt-3 text-sm font-semibold text-slate-900">{item.title}</p>
@@ -143,25 +142,24 @@ export default async function HomePage() {
           </div>
         </div>
 
-          <div className="relative overflow-hidden rounded-[28px] border border-slate-200 p-5 shadow-sm">
-            <div className="absolute inset-0">
-              <img src="/img/homepage2.jpg" alt="Keunggulan perpustakaan digital" className="h-full w-full object-cover" />
-              <div className="absolute inset-0 bg-slate-950/60" />
-            </div>
-            <div className="relative text-white">
-              <p className="text-sm font-semibold uppercase tracking-[0.3em] text-indigo-100">Siap mulai?</p>
-              <h2 className="mt-2 text-2xl font-semibold">Jadikan membaca sebagai kebiasaan yang menyenangkan.</h2>
-              <p className="mt-3 text-sm text-slate-200">Masuk untuk melihat riwayat peminjaman, atau jelajahi katalog buku terlebih dahulu sebagai tamu.</p>
-              <div className="mt-5 space-y-3">
-                <Link href="/catalog" className="flex items-center justify-between rounded-2xl bg-white/90 px-4 py-3 text-sm font-medium text-slate-900 shadow-sm">
-                  <span>Jelajahi katalog buku</span>
-                  <span className="text-indigo-600">→</span>
-                </Link>
-                <Link href={user ? (isAdmin ? '/admin' : '/dashboard') : '/login'} className="flex items-center justify-between rounded-2xl border border-white/30 bg-slate-950/30 px-4 py-3 text-sm font-medium text-white shadow-sm backdrop-blur">
-                  <span>{user ? (isAdmin ? 'Buka panel admin' : 'Lihat peminjaman') : 'Masuk ke akun'}</span>
-                  <span className="text-indigo-200">→</span>
-                </Link>
-              </div>
+        <div className="relative overflow-hidden rounded-[28px] border border-slate-200 p-8 shadow-sm">
+          <div className="absolute inset-0">
+            <img src="/img/homepage2.jpg" alt="Keunggulan perpustakaan digital" className="h-full w-full object-cover" />
+            <div className="absolute inset-0 bg-slate-950/60" />
+          </div>
+          <div className="relative text-white text-center flex flex-col items-center max-w-3xl mx-auto py-6">
+            <p className="text-sm font-semibold uppercase tracking-[0.3em] text-indigo-100">Siap mulai?</p>
+            <h2 className="mt-2 text-3xl font-semibold">Jadikan membaca sebagai kebiasaan yang menyenangkan.</h2>
+            <p className="mt-3 text-sm text-slate-200">Masuk untuk melihat riwayat peminjaman, atau jelajahi katalog buku terlebih dahulu sebagai tamu.</p>
+            <div className="mt-6 flex flex-col sm:flex-row gap-4 w-full justify-center max-w-md">
+              <Link href="/catalog" className="flex items-center justify-between gap-4 rounded-2xl bg-white/90 px-4 py-3 text-sm font-medium text-slate-900 shadow-sm transition hover:bg-white w-full sm:w-auto">
+                <span>Jelajahi katalog buku</span>
+                <span className="text-indigo-600">→</span>
+              </Link>
+              <Link href={user ? (isAdmin ? '/admin' : '/dashboard') : '/login'} className="flex items-center justify-between gap-4 rounded-2xl border border-white/30 bg-slate-950/30 px-4 py-3 text-sm font-medium text-white shadow-sm backdrop-blur transition hover:bg-white/10 w-full sm:w-auto">
+                <span>{user ? (isAdmin ? 'Buka panel admin' : 'Lihat peminjaman') : 'Masuk ke akun'}</span>
+                <span className="text-indigo-200">→</span>
+              </Link>
             </div>
           </div>
         </div>
