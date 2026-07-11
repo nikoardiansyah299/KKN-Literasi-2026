@@ -15,7 +15,7 @@ export async function GET(request: NextRequest) {
 
   const clientId = process.env.GOOGLE_CLIENT_ID!;
   const clientSecret = process.env.GOOGLE_CLIENT_SECRET!;
-  const baseUrl = process.env.NEXTAUTH_URL || 'http://localhost:3000';
+  const baseUrl = process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : (process.env.NEXTAUTH_URL || 'https://your-production-domain.com');
   const redirectUri = `${baseUrl}/api/auth/google/callback`;
 
   try {
@@ -121,14 +121,8 @@ export async function GET(request: NextRequest) {
       role: user.role,
     });
 
-    const cookieStore = await cookies();
-    cookieStore.set('library_token', token, {
-      httpOnly: true,
-      sameSite: 'lax',
-      maxAge: 60 * 60 * 24 * 7,
-    });
-
-    return NextResponse.redirect(new URL('/catalog', request.url));
+      const redirectTarget = decodeURIComponent(searchParams.get('state') || '/catalog');
+    return NextResponse.redirect(new URL(redirectTarget, request.url));
   } catch (err) {
     console.error('Google OAuth callback error:', err);
     return NextResponse.redirect(new URL('/login?error=google_failed', request.url));
