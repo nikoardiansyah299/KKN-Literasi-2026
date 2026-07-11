@@ -195,3 +195,23 @@ export async function getAdminDashboardData() {
 
   return { user, books, requests, loans, notifications, analytics };
 }
+
+export async function getPersetujuanData() {
+  const user = await getSessionUser();
+  if (!user || user.role !== 'admin') return null;
+
+  const [requests, books, users] = await Promise.all([
+    prisma.borrowRequest.findMany({
+      orderBy: { requestedAt: 'desc' },
+      include: { user: true, book: true },
+    }),
+    prisma.book.findMany({
+      orderBy: [{ title: 'asc' }],
+    }),
+    prisma.user.findMany({
+      orderBy: { name: 'asc' },
+    }),
+  ]);
+
+  return { requests, books, users };
+}

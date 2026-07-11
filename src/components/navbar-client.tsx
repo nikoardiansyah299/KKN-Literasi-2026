@@ -154,12 +154,20 @@ export default function NavbarClient({ user }: NavbarClientProps) {
                   </div>
                 </Link>
                 {isAdmin && (
-                  <Link
-                    href="/admin"
-                    className="flex items-center justify-center rounded-xl bg-slate-900 px-4 py-3 text-sm font-medium text-white shadow-sm transition hover:bg-slate-800"
-                  >
-                    Panel Admin
-                  </Link>
+                  <div className="flex flex-col gap-2">
+                    <Link
+                      href="/admin"
+                      className="flex items-center justify-center rounded-xl bg-slate-900 px-4 py-3 text-sm font-medium text-white shadow-sm transition hover:bg-slate-800"
+                    >
+                      Panel Admin
+                    </Link>
+                    <Link
+                      href="/admin/persetujuan"
+                      className="flex items-center justify-center rounded-xl bg-indigo-600 px-4 py-3 text-sm font-medium text-white shadow-sm transition hover:bg-indigo-500"
+                    >
+                      Persetujuan Peminjaman
+                    </Link>
+                  </div>
                 )}
                 {!isAdmin && (
                   <Link

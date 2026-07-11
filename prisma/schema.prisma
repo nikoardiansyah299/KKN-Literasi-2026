@@ -7,104 +7,108 @@ datasource db {
 }
 
 model User {
-  id                  Int               @id @default(autoincrement())
+  id                  Int             @id @default(autoincrement())
   name                String
-  email               String            @unique
-  passwordHash        String            @map("password_hash")
-  role                String            @default("user")
-  createdAt           DateTime          @default(now()) @map("created_at")
-  borrowRequests      BorrowRequest[]   @relation("BorrowRequestUser")
-  adminBorrowRequests BorrowRequest[]   @relation("BorrowRequestAdmin")
-  loans               Loan[]            @relation("LoanUser")
-  reservations        Reservation[]     @relation("ReservationUser")
-  notifications       Notification[]
+  email               String          @unique
+  passwordHash        String?         @map("password_hash")
+  role                String          @default("user")
+  createdAt           DateTime        @default(now()) @map("created_at")
+  googleId            String?         @unique @map("google_id")
   auditLogs           AuditLog[]
+  adminBorrowRequests BorrowRequest[] @relation("BorrowRequestAdmin")
+  borrowRequests      BorrowRequest[] @relation("BorrowRequestUser")
+  loans               Loan[]          @relation("LoanUser")
+  notifications       Notification[]
+  reservations        Reservation[]   @relation("ReservationUser")
 
   @@map("users")
 }
 
 model Book {
-  id             Int              @id @default(autoincrement())
+  id             Int             @id @default(autoincrement())
   title          String
   author         String
-  catalogNumber  Int              @map("catalog_number")
-  totalCopies    Int              @default(1) @map("total_copies")
-  description    String           @default("")
-  location       String           @default("Main Collection")
-  createdAt      DateTime         @default(now()) @map("created_at")
-  updatedAt      DateTime         @default(now()) @map("updated_at")
-  borrowRequests BorrowRequest[]  @relation("BorrowRequestBook")
-  loans          Loan[]           @relation("LoanBook")
-  reservations   Reservation[]    @relation("ReservationBook")
+  catalogNumber  Int             @map("catalog_number")
+  totalCopies    Int             @default(1) @map("total_copies")
+  description    String          @default("")
+  createdAt      DateTime        @default(now()) @map("created_at")
+  updatedAt      DateTime        @default(now()) @map("updated_at")
+  location       String          @default("Main Collection")
+  borrowRequests BorrowRequest[] @relation("BorrowRequestBook")
+  loans          Loan[]          @relation("LoanBook")
+  reservations   Reservation[]   @relation("ReservationBook")
 
   @@index([catalogNumber])
+  @@index([catalogNumber], map: "idx_books_catalog_number")
   @@map("books")
 }
 
 model BorrowRequest {
-  id          Int          @id @default(autoincrement())
-  userId      Int          @map("user_id")
-  bookId      Int          @map("book_id")
-  status      String       @default("pending")
-  requestedAt DateTime     @default(now()) @map("requested_at")
-  decidedAt   DateTime?    @map("decided_at")
-  adminId     Int?         @map("admin_id")
-  user        User         @relation("BorrowRequestUser", fields: [userId], references: [id])
-  book        Book         @relation("BorrowRequestBook", fields: [bookId], references: [id])
-  admin       User?        @relation("BorrowRequestAdmin", fields: [adminId], references: [id])
-  loans       Loan[]       @relation("LoanBorrowRequest")
+  id          Int       @id @default(autoincrement())
+  userId      Int       @map("user_id")
+  bookId      Int       @map("book_id")
+  status      String    @default("pending")
+  requestedAt DateTime  @default(now()) @map("requested_at")
+  decidedAt   DateTime? @map("decided_at")
+  adminId     Int?      @map("admin_id")
+  admin       User?     @relation("BorrowRequestAdmin", fields: [adminId], references: [id])
+  book        Book      @relation("BorrowRequestBook", fields: [bookId], references: [id])
+  user        User      @relation("BorrowRequestUser", fields: [userId], references: [id])
+  loans       Loan[]    @relation("LoanBorrowRequest")
 
   @@index([status])
+  @@index([status], map: "idx_borrow_requests_status")
   @@map("borrow_requests")
 }
 
 model Loan {
-  id               Int              @id @default(autoincrement())
-  userId           Int              @map("user_id")
-  bookId           Int              @map("book_id")
-  borrowRequestId  Int?             @map("borrow_request_id")
-  dueDate          DateTime         @map("due_date")
-  returnedAt       DateTime?        @map("returned_at")
-  lateFee          Decimal          @default(0) @db.Decimal(12, 2) @map("late_fee")
-  createdAt        DateTime         @default(now()) @map("created_at")
-  user             User             @relation("LoanUser", fields: [userId], references: [id])
-  book             Book             @relation("LoanBook", fields: [bookId], references: [id])
-  borrowRequest    BorrowRequest?   @relation("LoanBorrowRequest", fields: [borrowRequestId], references: [id])
+  id              Int            @id @default(autoincrement())
+  userId          Int            @map("user_id")
+  bookId          Int            @map("book_id")
+  borrowRequestId Int?           @map("borrow_request_id")
+  dueDate         DateTime       @map("due_date")
+  returnedAt      DateTime?      @map("returned_at")
+  lateFee         Decimal        @default(0) @map("late_fee") @db.Decimal(12, 2)
+  createdAt       DateTime       @default(now()) @map("created_at")
+  book            Book           @relation("LoanBook", fields: [bookId], references: [id])
+  borrowRequest   BorrowRequest? @relation("LoanBorrowRequest", fields: [borrowRequestId], references: [id])
+  user            User           @relation("LoanUser", fields: [userId], references: [id])
 
   @@index([dueDate])
+  @@index([dueDate], map: "idx_loans_due_date")
   @@map("loans")
 }
 
 model Reservation {
-  id         Int       @id @default(autoincrement())
-  userId     Int       @map("user_id")
-  bookId     Int       @map("book_id")
-  status     String    @default("active")
-  createdAt  DateTime  @default(now()) @map("created_at")
-  user       User      @relation("ReservationUser", fields: [userId], references: [id])
-  book       Book      @relation("ReservationBook", fields: [bookId], references: [id])
+  id        Int      @id @default(autoincrement())
+  userId    Int      @map("user_id")
+  bookId    Int      @map("book_id")
+  status    String   @default("active")
+  createdAt DateTime @default(now()) @map("created_at")
+  book      Book     @relation("ReservationBook", fields: [bookId], references: [id])
+  user      User     @relation("ReservationUser", fields: [userId], references: [id])
 
   @@map("reservations")
 }
 
 model Notification {
-  id         Int       @id @default(autoincrement())
-  userId     Int       @map("user_id")
-  message    String
-  read       Boolean   @default(false)
-  createdAt  DateTime  @default(now()) @map("created_at")
-  user       User      @relation(fields: [userId], references: [id])
+  id        Int      @id @default(autoincrement())
+  userId    Int      @map("user_id")
+  message   String
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now()) @map("created_at")
+  user      User     @relation(fields: [userId], references: [id])
 
   @@map("notifications")
 }
 
 model AuditLog {
-  id         Int       @id @default(autoincrement())
-  userId     Int?      @map("user_id")
-  action     String
-  details    String    @default("")
-  createdAt  DateTime  @default(now()) @map("created_at")
-  user       User?     @relation(fields: [userId], references: [id])
+  id        Int      @id @default(autoincrement())
+  userId    Int?     @map("user_id")
+  action    String
+  details   String   @default("")
+  createdAt DateTime @default(now()) @map("created_at")
+  user      User?    @relation(fields: [userId], references: [id])
 
   @@map("audit_logs")
 }

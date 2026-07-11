@@ -18,7 +18,13 @@ export async function login(formData: FormData) {
   const password = String(formData.get('password') || '');
 
   const user = await prisma.user.findUnique({ where: { email } });
-  if (!user || !comparePassword(password, user.passwordHash)) {
+
+  // Google-only account — no password set
+  if (user && !user.passwordHash) {
+    redirect('/login?error=no_password');
+  }
+
+  if (!user || !comparePassword(password, user.passwordHash!)) {
     redirect('/login?error=invalid');
   }
 
@@ -186,6 +192,7 @@ export async function approveBorrowRequest(id: number) {
 
   await createAuditLog(user.id, 'borrow_approve', `Approved request ${id}`);
   revalidatePath('/admin');
+  revalidatePath('/admin/persetujuan');
 }
 
 export async function rejectBorrowRequest(id: number) {
@@ -197,6 +204,61 @@ export async function rejectBorrowRequest(id: number) {
   await prisma.notification.create({ data: { userId: request.userId, message: 'Your borrow request was rejected.' } });
   await createAuditLog(user.id, 'borrow_reject', `Rejected request ${id}`);
   revalidatePath('/admin');
+  revalidatePath('/admin/persetujuan');
+}
+
+export async function createOfflineLoan(formData: FormData) {
+  const adminUser = await getSessionUserOrRedirect('admin');
+  const borrowerName = String(formData.get('borrowerName') || '').trim();
+  const bookId = Number(formData.get('bookId'));
+  const borrowDateStr = String(formData.get('borrowDate') || '').trim();
+  const dueDateStr = String(formData.get('dueDate') || '').trim();
+
+  if (!borrowerName) throw new Error('Nama peminjam wajib diisi');
+  if (!bookId) throw new Error('Buku wajib dipilih');
+  if (!borrowDateStr) throw new Error('Tanggal pinjam wajib diisi');
+  if (!dueDateStr) throw new Error('Tanggal kembali wajib diisi');
+
+  const borrowDate = new Date(borrowDateStr);
+  const dueDate = new Date(dueDateStr);
+
+  if (isNaN(borrowDate.getTime())) throw new Error('Tanggal pinjam tidak valid');
+  if (isNaN(dueDate.getTime())) throw new Error('Tanggal kembali tidak valid');
+
+  // Find or create user
+  let userRecord = await prisma.user.findFirst({
+    where: { name: { equals: borrowerName, mode: 'insensitive' } }
+  });
+
+  if (!userRecord) {
+    const sanitized = borrowerName.toLowerCase().replace(/[^a-z0-9]/g, '');
+    const email = `offline-${sanitized}-${Date.now()}@library.offline`;
+    userRecord = await prisma.user.create({
+      data: {
+        name: borrowerName,
+        email,
+        role: 'user'
+      }
+    });
+  }
+
+  // Check if book exists
+  const book = await prisma.book.findUnique({ where: { id: bookId } });
+  if (!book) throw new Error('Buku tidak ditemukan');
+
+  // Create the loan
+  await prisma.loan.create({
+    data: {
+      userId: userRecord.id,
+      bookId,
+      dueDate,
+      createdAt: borrowDate
+    }
+  });
+
+  await createAuditLog(adminUser.id, 'offline_loan_create', `Created offline loan for ${borrowerName} - Book: ${book.title}`);
+  revalidatePath('/admin');
+  revalidatePath('/admin/persetujuan');
 }
 
 export async function returnLoan(id: number) {
@@ -208,13 +270,10 @@ export async function returnLoan(id: number) {
   const overdueDays = Math.max(Math.ceil((now.getTime() - loan.dueDate.getTime()) / (1000 * 60 * 60 * 24)), 0);
   const lateFee = overdueDays > 0 ? overdueDays * DAILY_LATE_FEE : 0;
 
-  await prisma.$transaction(async (tx) => {
-    await tx.loan.update({ where: { id }, data: { returnedAt: now, lateFee } });
-    await tx.notification.create({ data: { userId: loan.userId, message: lateFee > 0 ? `Book returned with overdue fee: ${lateFee}.` : 'Book return recorded. No late fee.' } });
-  });
-
+  await prisma.loan.update({ where: { id }, data: { returnedAt: now, lateFee } });
   await createAuditLog(user.id, 'loan_return', `Returned loan ${id}`);
   revalidatePath('/admin');
+  revalidatePath('/admin/persetujuan');
 }
 
 async function getSessionUserOrRedirect(role?: string) {
