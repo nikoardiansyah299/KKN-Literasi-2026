@@ -18,6 +18,8 @@ const connectionString = (() => {
     if (process.env.VERCEL === '1') {
       url.searchParams.set('sslmode', 'no-verify');
     }
+    // Limit connection pool size to avoid exceeding DB connections on serverless
+    url.searchParams.set('connection_limit', '5');
     return url.toString();
   } catch {
     return rawConnectionString || 'postgres://localhost:5432/postgres';
