@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { getSessionUser } from '@/lib/auth';
+import BookCarousel from '@/components/book-carousel';
 
 export default async function HomePage() {
   const user = await getSessionUser();
@@ -140,6 +141,11 @@ export default async function HomePage() {
               </div>
             ))}
           </div>
+        </div>
+
+        {/* ── Scrolling Book Catalog ── */}
+        <div className="relative -mx-4 sm:-mx-6 lg:-mx-8 bg-slate-50 py-10 px-4 sm:px-6 lg:px-8 rounded-3xl border border-slate-100">
+          <BookCarousel />
         </div>
 
         <div className="relative overflow-hidden rounded-[28px] border border-slate-200 p-8 shadow-sm">
