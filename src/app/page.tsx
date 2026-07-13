@@ -116,7 +116,20 @@ export default async function HomePage() {
         </div>
       </div>
 
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 space-y-12">
+      <div className="relative py-10">
+        {/* Background image – below hero, above footer (seamless tile) */}
+        <div
+          className="pointer-events-none absolute inset-0"
+          aria-hidden="true"
+          style={{
+            backgroundImage: 'url(/img/background.jpg)',
+            backgroundRepeat: 'repeat',
+            backgroundSize: '700px',
+            opacity: 0.2,  
+          }}
+        />
+
+        <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 space-y-12">
         <div className="space-y-6">
           <div className="flex flex-col items-center text-center gap-3">
             <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-indigo-50 text-indigo-600">
@@ -169,6 +182,7 @@ export default async function HomePage() {
             </div>
           </div>
         </div>
+      </div>
       </div>
     </section>
   );

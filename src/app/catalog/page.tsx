@@ -46,7 +46,20 @@ export default async function CatalogPage({ searchParams }: { searchParams: Prom
   };
 
   return (
-    <section className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8 space-y-8">
+    <div className="relative">
+      {/* Seamless tiled background */}
+      <div
+        className="pointer-events-none absolute inset-0"
+        aria-hidden="true"
+        style={{
+          backgroundImage: 'url(/img/background.jpg)',
+          backgroundRepeat: 'repeat',
+          backgroundSize: '700px',
+          opacity: 0.2,
+        }}
+      />
+
+      <section className="relative mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8 space-y-8">
       <div className="text-center space-y-2">
         <p className="text-xs font-bold uppercase tracking-[0.3em] text-indigo-600">Katalog</p>
         <h1 className="text-3xl font-bold text-slate-900 sm:text-4xl">Jelajahi Buku dari Kode 000 hingga 999</h1>
@@ -182,5 +195,6 @@ export default async function CatalogPage({ searchParams }: { searchParams: Prom
         </div>
       </div>
     </section>
+    </div>
   );
 }
