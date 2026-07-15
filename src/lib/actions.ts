@@ -130,13 +130,32 @@ export async function createBook(formData: FormData) {
   const description = String(formData.get('description') || '').trim();
   const location = String(formData.get('location') || 'Main Collection').trim();
 
+  // New inventory fields
+  const tanggalTerimaRaw = String(formData.get('tanggalTerima') || '').trim();
+  const nomorInventaris = String(formData.get('nomorInventaris') || '').trim() || null;
+  const penerbit = String(formData.get('penerbit') || '').trim() || null;
+  const tahunTerbitRaw = String(formData.get('tahunTerbit') || '').trim();
+  const subjek = String(formData.get('subjek') || '').trim() || null;
+  const sumber = String(formData.get('sumber') || '').trim() || null;
+  const noReg = String(formData.get('noReg') || '').trim() || null;
+  const keterangan = String(formData.get('keterangan') || '').trim() || null;
+
+  const tanggalTerima = tanggalTerimaRaw ? new Date(tanggalTerimaRaw) : null;
+  const tahunTerbit = tahunTerbitRaw ? Number(tahunTerbitRaw) : null;
+
   if (!title || !author) {
     throw new Error('Title and author are required');
   }
 
-  await prisma.book.create({ data: { title, author, catalogNumber, totalCopies, description, location } });
+  await prisma.book.create({
+    data: {
+      title, author, catalogNumber, totalCopies, description, location,
+      tanggalTerima, nomorInventaris, penerbit, tahunTerbit, subjek, sumber, noReg, keterangan,
+    },
+  });
   await createAuditLog(user.id, 'book_create', `Created book ${title}`);
   revalidatePath('/admin');
+  revalidatePath('/admin/database');
   revalidatePath('/catalog');
 }
 
@@ -149,9 +168,30 @@ export async function updateBook(id: number, formData: FormData) {
   const description = String(formData.get('description') || '').trim();
   const location = String(formData.get('location') || 'Main Collection').trim();
 
-  await prisma.book.update({ where: { id }, data: { title, author, catalogNumber, totalCopies, description, location } });
+  // New inventory fields
+  const tanggalTerimaRaw = String(formData.get('tanggalTerima') || '').trim();
+  const nomorInventaris = String(formData.get('nomorInventaris') || '').trim() || null;
+  const penerbit = String(formData.get('penerbit') || '').trim() || null;
+  const tahunTerbitRaw = String(formData.get('tahunTerbit') || '').trim();
+  const subjek = String(formData.get('subjek') || '').trim() || null;
+  const sumber = String(formData.get('sumber') || '').trim() || null;
+  const noReg = String(formData.get('noReg') || '').trim() || null;
+  const keterangan = String(formData.get('keterangan') || '').trim() || null;
+
+  const tanggalTerima = tanggalTerimaRaw ? new Date(tanggalTerimaRaw) : null;
+  const tahunTerbit = tahunTerbitRaw ? Number(tahunTerbitRaw) : null;
+
+  await prisma.book.update({
+    where: { id },
+    data: {
+      title, author, catalogNumber, totalCopies, description, location,
+      tanggalTerima, nomorInventaris, penerbit, tahunTerbit, subjek, sumber, noReg, keterangan,
+      updatedAt: new Date(),
+    },
+  });
   await createAuditLog(user.id, 'book_update', `Updated book ${id}`);
   revalidatePath('/admin');
+  revalidatePath('/admin/database');
   revalidatePath('/catalog');
   revalidatePath(`/books/${id}`);
 }
@@ -167,12 +207,36 @@ export async function deleteBook(id: number) {
 export async function importBooks(formData: FormData) {
   const user = await getSessionUserOrRedirect('admin');
   const payload = String(formData.get('payload') || '').trim();
-  const items = JSON.parse(payload);
+  const items = JSON.parse(payload) as Array<Record<string, string>>;
+
   for (const item of items) {
-    await prisma.book.create({ data: { title: item.title, author: item.author, catalogNumber: Number(item.catalogNumber), totalCopies: Number(item.totalCopies || 1), description: item.description || '', location: item.location || 'Main Collection' } });
+    const tanggalTerima = item.tanggalTerima ? new Date(item.tanggalTerima) : null;
+    const tahunTerbit = item.tahunTerbit ? Number(item.tahunTerbit) : null;
+    const nomorInventaris = item.nomorInventaris?.trim() || null;
+
+    await prisma.book.create({
+      data: {
+        title: item.title || '',
+        author: item.author || '',
+        catalogNumber: Number(item.catalogNumber) || 0,
+        totalCopies: Number(item.totalCopies) || 1,
+        description: item.description || '',
+        location: item.location || 'Main Collection',
+        tanggalTerima,
+        nomorInventaris,
+        penerbit: item.penerbit?.trim() || null,
+        tahunTerbit,
+        subjek: item.subjek?.trim() || null,
+        sumber: item.sumber?.trim() || null,
+        noReg: item.noReg?.trim() || null,
+        keterangan: item.keterangan?.trim() || null,
+      },
+    });
   }
+
   await createAuditLog(user.id, 'book_import', `Imported ${items.length} books`);
   revalidatePath('/admin');
+  revalidatePath('/admin/database');
   revalidatePath('/catalog');
 }
 

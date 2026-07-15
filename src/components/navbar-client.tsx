@@ -162,8 +162,23 @@ export default function NavbarClient({ user }: NavbarClientProps) {
                       Panel Admin
                     </Link>
                     <Link
+                      href="/admin/database"
+                      className={`flex items-center gap-2 justify-center rounded-xl px-4 py-3 text-sm font-medium shadow-sm transition ${
+                        pathname === '/admin/database'
+                          ? 'bg-indigo-700 text-white'
+                          : 'bg-indigo-600 text-white hover:bg-indigo-500'
+                      }`}
+                    >
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="h-4 w-4 shrink-0">
+                        <ellipse cx="12" cy="5" rx="9" ry="3" />
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M3 5v5c0 1.657 4.03 3 9 3s9-1.343 9-3V5" />
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M3 10v5c0 1.657 4.03 3 9 3s9-1.343 9-3v-5" />
+                      </svg>
+                      Manajemen Database
+                    </Link>
+                    <Link
                       href="/admin/persetujuan"
-                      className="flex items-center justify-center rounded-xl bg-indigo-600 px-4 py-3 text-sm font-medium text-white shadow-sm transition hover:bg-indigo-500"
+                      className="flex items-center justify-center rounded-xl border border-indigo-200 bg-indigo-50 px-4 py-3 text-sm font-medium text-indigo-700 shadow-sm transition hover:bg-indigo-100"
                     >
                       Persetujuan Peminjaman
                     </Link>

@@ -25,18 +25,29 @@ model User {
 }
 
 model Book {
-  id             Int             @id @default(autoincrement())
-  title          String
-  author         String
-  catalogNumber  Int             @map("catalog_number")
-  totalCopies    Int             @default(1) @map("total_copies")
-  description    String          @default("")
-  createdAt      DateTime        @default(now()) @map("created_at")
-  updatedAt      DateTime        @default(now()) @map("updated_at")
-  location       String          @default("Main Collection")
-  borrowRequests BorrowRequest[] @relation("BorrowRequestBook")
-  loans          Loan[]          @relation("LoanBook")
-  reservations   Reservation[]   @relation("ReservationBook")
+  id               Int             @id @default(autoincrement())
+  title            String
+  author           String
+  catalogNumber    Int             @default(0) @map("catalog_number")
+  totalCopies      Int             @default(1) @map("total_copies")
+  description      String          @default("")
+  createdAt        DateTime        @default(now()) @map("created_at")
+  updatedAt        DateTime        @default(now()) @map("updated_at")
+  location         String          @default("Main Collection")
+
+  // Library inventory fields
+  tanggalTerima    DateTime?       @map("tanggal_terima")
+  nomorInventaris  String?         @unique @map("nomor_inventaris")
+  penerbit         String?
+  tahunTerbit      Int?            @map("tahun_terbit")
+  subjek           String?
+  sumber           String?
+  noReg            String?         @map("no_reg")
+  keterangan       String?
+
+  borrowRequests   BorrowRequest[] @relation("BorrowRequestBook")
+  loans            Loan[]          @relation("LoanBook")
+  reservations     Reservation[]   @relation("ReservationBook")
 
   @@index([catalogNumber])
   @@index([catalogNumber], map: "idx_books_catalog_number")

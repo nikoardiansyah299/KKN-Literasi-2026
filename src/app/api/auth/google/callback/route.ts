@@ -15,7 +15,9 @@ export async function GET(request: NextRequest) {
 
   const clientId = process.env.GOOGLE_CLIENT_ID!;
   const clientSecret = process.env.GOOGLE_CLIENT_SECRET!;
-  const baseUrl = process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : (process.env.NEXTAUTH_URL || 'https://your-production-domain.com');
+  const baseUrl = process.env.NEXTAUTH_URL
+    || (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : null)
+    || (process.env.NODE_ENV === 'development' ? 'http://localhost:3000' : 'https://kkn-literasi-2026.vercel.app');
   const redirectUri = `${baseUrl}/api/auth/google/callback`;
 
   try {
@@ -113,7 +115,7 @@ export async function GET(request: NextRequest) {
       });
     }
 
-    // 4. Sign JWT token and set cookie (same as regular login)
+    // 4. Sign JWT token, set cookie, and redirect (same as regular login)
     const token = signToken({
       id: user.id,
       name: user.name,
@@ -121,8 +123,16 @@ export async function GET(request: NextRequest) {
       role: user.role,
     });
 
-      const redirectTarget = decodeURIComponent(searchParams.get('state') || '/catalog');
-    return NextResponse.redirect(new URL(redirectTarget, request.url));
+    (await cookies()).set('library_token', token, {
+      httpOnly: true,
+      sameSite: 'lax',
+      maxAge: 60 * 60 * 24 * 7,
+    });
+
+    const redirectTarget = decodeURIComponent(searchParams.get('state') || '/catalog');
+    // Ensure redirect stays on same origin
+    const safeTarget = redirectTarget.startsWith('http') ? '/catalog' : redirectTarget;
+    return NextResponse.redirect(new URL(safeTarget, baseUrl));
   } catch (err) {
     console.error('Google OAuth callback error:', err);
     return NextResponse.redirect(new URL('/login?error=google_failed', request.url));
