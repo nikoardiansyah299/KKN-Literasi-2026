@@ -15,9 +15,7 @@ export async function GET(request: NextRequest) {
 
   const clientId = process.env.GOOGLE_CLIENT_ID!;
   const clientSecret = process.env.GOOGLE_CLIENT_SECRET!;
-  const baseUrl = process.env.NEXTAUTH_URL
-    || (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : null)
-    || (process.env.NODE_ENV === 'development' ? 'http://localhost:3000' : 'https://kkn-literasi-2026.vercel.app');
+  const baseUrl = request.nextUrl.origin;
   const redirectUri = `${baseUrl}/api/auth/google/callback`;
 
   try {
