@@ -35,7 +35,7 @@ const connectionString = (() => {
 const globalForPrisma = globalThis as unknown as { prisma?: PrismaClient };
 
 const prismaClient = globalForPrisma.prisma ?? new PrismaClient({
-  adapter: new PrismaPg({ connectionString }),
+  adapter: new PrismaPg({ connectionString, max: 3 }),
   log: process.env.NODE_ENV === 'development' ? ['error', 'warn'] : ['error'],
 });
 

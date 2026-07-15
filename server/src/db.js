@@ -20,6 +20,7 @@ function getPrismaConnectionString() {
 const prisma = new PrismaClient({
   adapter: new PrismaPg({
     connectionString: getPrismaConnectionString(),
+    max: 3,
   }),
 });
 
