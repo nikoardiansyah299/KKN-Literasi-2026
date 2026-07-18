@@ -125,7 +125,7 @@ export async function createBook(formData: FormData) {
   const user = await getSessionUserOrRedirect('admin');
   const title = String(formData.get('title') || '').trim();
   const author = String(formData.get('author') || '').trim();
-  const catalogNumber = Number(formData.get('catalogNumber') || 0);
+  const catalogNumberRaw = Number(formData.get('catalogNumber') || 0);
   const totalCopies = Number(formData.get('totalCopies') || 1);
   const description = String(formData.get('description') || '').trim();
   const location = String(formData.get('location') || 'Main Collection').trim();
@@ -133,6 +133,7 @@ export async function createBook(formData: FormData) {
   // New inventory fields
   const tanggalTerimaRaw = String(formData.get('tanggalTerima') || '').trim();
   const nomorInventaris = String(formData.get('nomorInventaris') || '').trim() || null;
+  const catalogNumber = catalogNumberRaw || (nomorInventaris ? (parseInt(nomorInventaris, 10) || 0) : 0);
   const penerbit = String(formData.get('penerbit') || '').trim() || null;
   const tahunTerbitRaw = String(formData.get('tahunTerbit') || '').trim();
   const subjek = String(formData.get('subjek') || '').trim() || null;
@@ -163,7 +164,7 @@ export async function updateBook(id: number, formData: FormData) {
   const user = await getSessionUserOrRedirect('admin');
   const title = String(formData.get('title') || '').trim();
   const author = String(formData.get('author') || '').trim();
-  const catalogNumber = Number(formData.get('catalogNumber') || 0);
+  const catalogNumberRaw = Number(formData.get('catalogNumber') || 0);
   const totalCopies = Number(formData.get('totalCopies') || 1);
   const description = String(formData.get('description') || '').trim();
   const location = String(formData.get('location') || 'Main Collection').trim();
@@ -171,6 +172,7 @@ export async function updateBook(id: number, formData: FormData) {
   // New inventory fields
   const tanggalTerimaRaw = String(formData.get('tanggalTerima') || '').trim();
   const nomorInventaris = String(formData.get('nomorInventaris') || '').trim() || null;
+  const catalogNumber = catalogNumberRaw || (nomorInventaris ? (parseInt(nomorInventaris, 10) || 0) : 0);
   const penerbit = String(formData.get('penerbit') || '').trim() || null;
   const tahunTerbitRaw = String(formData.get('tahunTerbit') || '').trim();
   const subjek = String(formData.get('subjek') || '').trim() || null;
@@ -213,12 +215,14 @@ export async function importBooks(formData: FormData) {
     const tanggalTerima = item.tanggalTerima ? new Date(item.tanggalTerima) : null;
     const tahunTerbit = item.tahunTerbit ? Number(item.tahunTerbit) : null;
     const nomorInventaris = item.nomorInventaris?.trim() || null;
+    const catalogNumberRaw = Number(item.catalogNumber) || 0;
+    const catalogNumber = catalogNumberRaw || (nomorInventaris ? (parseInt(nomorInventaris, 10) || 0) : 0);
 
     await prisma.book.create({
       data: {
         title: item.title || '',
         author: item.author || '',
-        catalogNumber: Number(item.catalogNumber) || 0,
+        catalogNumber,
         totalCopies: Number(item.totalCopies) || 1,
         description: item.description || '',
         location: item.location || 'Main Collection',

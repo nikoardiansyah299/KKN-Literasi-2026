@@ -171,9 +171,9 @@ export default async function HomePage() {
             <h2 className="mt-2 text-3xl font-semibold">Jadikan membaca sebagai kebiasaan yang menyenangkan.</h2>
             <p className="mt-3 text-sm text-slate-200">Masuk untuk melihat riwayat peminjaman, atau jelajahi katalog buku terlebih dahulu sebagai tamu.</p>
             <div className="mt-6 flex flex-col sm:flex-row gap-4 w-full justify-center max-w-md">
-              <Link href="/catalog" className="flex items-center justify-between gap-4 rounded-2xl bg-white/90 px-4 py-3 text-sm font-medium text-slate-900 shadow-sm transition hover:bg-white w-full sm:w-auto">
+              <Link href="/catalog" className="flex items-center justify-between gap-4 rounded-2xl bg-indigo-600! hover:bg-indigo-700! px-4 py-3 text-sm font-medium text-white! shadow-sm transition w-full sm:w-auto">
                 <span>Jelajahi katalog buku</span>
-                <span className="text-indigo-600">→</span>
+                <span className="text-white">→</span>
               </Link>
               <Link href={user ? (isAdmin ? '/admin' : '/dashboard') : '/login'} className="flex items-center justify-between gap-4 rounded-2xl border border-white/30 bg-slate-950/30 px-4 py-3 text-sm font-medium text-white shadow-sm backdrop-blur transition hover:bg-white/10 w-full sm:w-auto">
                 <span>{user ? (isAdmin ? 'Buka panel admin' : 'Lihat peminjaman') : 'Masuk ke akun'}</span>

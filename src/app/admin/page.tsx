@@ -101,7 +101,7 @@ export default async function AdminPage() {
                 <div key={book.id} className="py-2.5 flex items-center justify-between gap-3 text-xs">
                   <div className="flex items-center gap-3 min-w-0">
                     <span className="rounded bg-indigo-50 px-2 py-0.5 font-mono font-semibold text-indigo-700 shrink-0">
-                      {String(book.catalogNumber).padStart(3, '0')}
+                      {book.nomorInventaris ?? '—'}
                     </span>
                     <div className="min-w-0">
                       <p className="font-semibold text-slate-800 truncate" title={book.title}>{book.title}</p>

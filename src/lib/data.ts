@@ -17,6 +17,7 @@ type CatalogBook = {
   totalCopies: number;
   description: string;
   location: string;
+  nomorInventaris: string | null;
 };
 
 const fallbackCatalogBooks: CatalogBook[] = [
@@ -25,6 +26,7 @@ const fallbackCatalogBooks: CatalogBook[] = [
     title: 'The Knowledge Atlas',
     author: 'Mira Aditya',
     catalogNumber: 12,
+    nomorInventaris: '12',
     totalCopies: 3,
     description: 'A general reference guide for community learning.',
     location: 'Main Collection',
@@ -34,6 +36,7 @@ const fallbackCatalogBooks: CatalogBook[] = [
     title: 'Digital Literacy Basics',
     author: 'Raka Firmansyah',
     catalogNumber: 35,
+    nomorInventaris: '35',
     totalCopies: 2,
     description: 'Practical lessons for digital citizenship and everyday technology.',
     location: 'Main Collection',
@@ -43,6 +46,7 @@ const fallbackCatalogBooks: CatalogBook[] = [
     title: 'History of Nusantara',
     author: 'Sinta Wibowo',
     catalogNumber: 109,
+    nomorInventaris: '109',
     totalCopies: 4,
     description: 'A concise regional history overview for learners.',
     location: 'Main Collection',
@@ -66,13 +70,14 @@ function getFallbackAvailability(bookId: number): BookAvailability {
 
 function getFallbackCatalog(params: { search?: string; start?: number; end?: number; page?: number; pageSize?: number }) {
   const search = params.search?.trim().toLowerCase() || '';
-  const start = Number(params.start ?? 0);
-  const end = Number(params.end ?? 999);
+  const start = Number(params.start ?? 1);
+  const end = Number(params.end ?? 1000);
   const page = Math.max(Number(params.page ?? 1), 1);
   const pageSize = Math.min(Math.max(Number(params.pageSize ?? 12), 1), 50);
 
   const filtered = fallbackCatalogBooks.filter((book) => {
-    const matchesRange = book.catalogNumber >= start && book.catalogNumber <= end;
+    const num = book.nomorInventaris ? parseInt(book.nomorInventaris, 10) : NaN;
+    const matchesRange = !isNaN(num) && num >= start && num <= end;
     const matchesSearch = !search || `${book.title} ${book.author} ${book.description}`.toLowerCase().includes(search);
     return matchesRange && matchesSearch;
   });
@@ -111,11 +116,14 @@ export async function getBookById(bookId: number) {
   }
 }
 
-export async function getCatalogBooks(params: { search?: string; start?: number; end?: number; page?: number; pageSize?: number }) {
+export async function getCatalogBooks(
+  params: { search?: string; start?: number; end?: number; page?: number; pageSize?: number },
+  prismaClient = prisma
+) {
   try {
     const search = params.search?.trim() || '';
-    const start = Number(params.start ?? 0);
-    const end = Number(params.end ?? 999);
+    const start = Number(params.start ?? 1);
+    const end = Number(params.end ?? 1000);
     const page = Math.max(Number(params.page ?? 1), 1);
     const pageSize = Math.min(Math.max(Number(params.pageSize ?? 12), 1), 50);
 
@@ -132,13 +140,13 @@ export async function getCatalogBooks(params: { search?: string; start?: number;
     };
 
     const [items, total] = await Promise.all([
-      prisma.book.findMany({
+      prismaClient.book.findMany({
         where,
         orderBy: [{ catalogNumber: 'asc' }, { title: 'asc' }],
         skip: (page - 1) * pageSize,
         take: pageSize,
       }),
-      prisma.book.count({ where }),
+      prismaClient.book.count({ where }),
     ]);
 
     return {
@@ -157,61 +165,80 @@ export async function getDashboardData() {
   const user = await getSessionUser();
   if (!user) return null;
 
-  const [loans, notifications, reservations, requests] = await Promise.all([
-    prisma.loan.findMany({
-      where: { userId: user.id },
-      orderBy: { createdAt: 'desc' },
-      include: { book: true },
-    }),
-    prisma.notification.findMany({ where: { userId: user.id }, orderBy: { createdAt: 'desc' } }),
-    prisma.reservation.findMany({ where: { userId: user.id, status: 'active' }, orderBy: { createdAt: 'desc' }, include: { book: true } }),
-    prisma.borrowRequest.findMany({ where: { userId: user.id }, orderBy: { requestedAt: 'desc' }, include: { book: true } }),
-  ]);
-
-  return { user, loans, notifications, reservations, requests };
+  try {
+    const [loans, notifications, reservations, requests] = await Promise.all([
+      prisma.loan.findMany({
+        where: { userId: user.id },
+        orderBy: { createdAt: 'desc' },
+        include: { book: true },
+      }),
+      prisma.notification.findMany({ where: { userId: user.id }, orderBy: { createdAt: 'desc' } }),
+      prisma.reservation.findMany({ where: { userId: user.id, status: 'active' }, orderBy: { createdAt: 'desc' }, include: { book: true } }),
+      prisma.borrowRequest.findMany({ where: { userId: user.id }, orderBy: { requestedAt: 'desc' }, include: { book: true } }),
+    ]);
+    return { user, loans, notifications, reservations, requests };
+  } catch (error) {
+    console.error('getDashboardData: database error, returning empty data:', error);
+    return { user, loans: [], notifications: [], reservations: [], requests: [] };
+  }
 }
 
 export async function getAdminDashboardData() {
   const user = await getSessionUser();
   if (!user || user.role !== 'admin') return null;
 
-  const [books, requests, loans, notifications, analytics] = await Promise.all([
-    prisma.book.findMany({ orderBy: [{ catalogNumber: 'asc' }, { title: 'asc' }] }),
-    prisma.borrowRequest.findMany({ orderBy: { requestedAt: 'desc' }, include: { user: true, book: true } }),
-    prisma.loan.findMany({ orderBy: { createdAt: 'desc' }, include: { user: true, book: true } }),
-    prisma.notification.findMany({ orderBy: { createdAt: 'desc' }, take: 10 }),
-    prisma.$transaction(async (tx) => {
-      const [users, booksCount, activeLoans, overdueLoans, pendingRequests, mostBorrowed] = await Promise.all([
-        tx.user.count({ where: { role: 'user' } }),
-        tx.book.count(),
-        tx.loan.count({ where: { returnedAt: null } }),
-        tx.loan.count({ where: { returnedAt: null, dueDate: { lt: new Date() } } }),
-        tx.borrowRequest.count({ where: { status: 'pending' } }),
-        tx.$queryRaw<{ id: number; title: string; borrow_count: bigint }[]>`SELECT b.id, b.title, COUNT(*)::int as borrow_count FROM loans l JOIN books b ON b.id = l.book_id GROUP BY b.id, b.title ORDER BY borrow_count DESC LIMIT 5`,
-      ]);
-      return { users, booksCount, activeLoans, overdueLoans, pendingRequests, mostBorrowed };
-    }),
-  ]);
-
-  return { user, books, requests, loans, notifications, analytics };
+  try {
+    const [books, requests, loans, notifications, analytics] = await Promise.all([
+      prisma.book.findMany({ orderBy: [{ catalogNumber: 'asc' }, { title: 'asc' }] }),
+      prisma.borrowRequest.findMany({ orderBy: { requestedAt: 'desc' }, include: { user: true, book: true } }),
+      prisma.loan.findMany({ orderBy: { createdAt: 'desc' }, include: { user: true, book: true } }),
+      prisma.notification.findMany({ orderBy: { createdAt: 'desc' }, take: 10 }),
+      prisma.$transaction(async (tx) => {
+        const [users, booksCount, activeLoans, overdueLoans, pendingRequests, mostBorrowed] = await Promise.all([
+          tx.user.count({ where: { role: 'user' } }),
+          tx.book.count(),
+          tx.loan.count({ where: { returnedAt: null } }),
+          tx.loan.count({ where: { returnedAt: null, dueDate: { lt: new Date() } } }),
+          tx.borrowRequest.count({ where: { status: 'pending' } }),
+          tx.$queryRaw<{ id: number; title: string; borrow_count: bigint }[]>`SELECT b.id, b.title, COUNT(*)::int as borrow_count FROM loans l JOIN books b ON b.id = l.book_id GROUP BY b.id, b.title ORDER BY borrow_count DESC LIMIT 5`,
+        ]);
+        return { users, booksCount, activeLoans, overdueLoans, pendingRequests, mostBorrowed };
+      }),
+    ]);
+    return { user, books, requests, loans, notifications, analytics };
+  } catch (error) {
+    console.error('getAdminDashboardData: database error, returning empty data:', error);
+    return {
+      user,
+      books: [],
+      requests: [],
+      loans: [],
+      notifications: [],
+      analytics: { users: 0, booksCount: 0, activeLoans: 0, overdueLoans: 0, pendingRequests: 0, mostBorrowed: [] },
+    };
+  }
 }
 
 export async function getPersetujuanData() {
   const user = await getSessionUser();
   if (!user || user.role !== 'admin') return null;
 
-  const [requests, books, users] = await Promise.all([
-    prisma.borrowRequest.findMany({
-      orderBy: { requestedAt: 'desc' },
-      include: { user: true, book: true },
-    }),
-    prisma.book.findMany({
-      orderBy: [{ title: 'asc' }],
-    }),
-    prisma.user.findMany({
-      orderBy: { name: 'asc' },
-    }),
-  ]);
-
-  return { requests, books, users };
+  try {
+    const [requests, books, users] = await Promise.all([
+      prisma.borrowRequest.findMany({
+        orderBy: { requestedAt: 'desc' },
+        include: { user: true, book: true },
+      }),
+      prisma.book.findMany({
+        orderBy: [{ title: 'asc' }],
+      }),
+      prisma.user.findMany({
+        orderBy: { name: 'asc' },
+      }),
+    ]);
+    return { requests, books, users };
+  } catch (error) {
+    console.error('getPersetujuanData: database error, returning empty data:', error);
+    return { requests: [], books: [], users: [] };
+  }
 }

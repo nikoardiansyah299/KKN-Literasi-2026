@@ -38,7 +38,7 @@ async function main() {
     const catalogNumber = index + 1;
     const existing = await prisma.book.findFirst({ where: { title: String(title), author: String(author) } });
     if (!existing) {
-      await prisma.book.create({ data: { title: String(title), author: String(author), catalogNumber: Number(catalogNumber), totalCopies: Number(totalCopies), description: String(description) } });
+      await prisma.book.create({ data: { title: String(title), author: String(author), catalogNumber: Number(catalogNumber), nomorInventaris: String(catalogNumber), totalCopies: Number(totalCopies), description: String(description) } });
     }
   }
 

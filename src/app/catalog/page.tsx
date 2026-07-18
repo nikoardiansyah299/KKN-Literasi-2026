@@ -9,8 +9,8 @@ export default async function CatalogPage({ searchParams }: { searchParams: Prom
   const user = await getSessionUser();
   const catalog = await getCatalogBooks({
     search: params.search,
-    start: Number(params.start ?? 0),
-    end: Number(params.end ?? 999),
+    start: Number(params.start ?? 1),
+    end: Number(params.end ?? 1000),
     page: Number(params.page ?? 1),
     pageSize: 12,
   });
@@ -25,18 +25,22 @@ export default async function CatalogPage({ searchParams }: { searchParams: Prom
   let activelyBorrowedBookIds = new Set<number>();
 
   if (user?.role === 'user' && bookIds.length > 0) {
-    const [pendingRequests, activeLoans] = await Promise.all([
-      prisma.borrowRequest.findMany({
-        where: { userId: user.id, bookId: { in: bookIds }, status: 'pending' },
-        select: { bookId: true },
-      }),
-      prisma.loan.findMany({
-        where: { userId: user.id, bookId: { in: bookIds }, returnedAt: null },
-        select: { bookId: true },
-      }),
-    ]);
-    pendingBookIds = new Set(pendingRequests.map((r) => r.bookId));
-    activelyBorrowedBookIds = new Set(activeLoans.map((l) => l.bookId));
+    try {
+      const [pendingRequests, activeLoans] = await Promise.all([
+        prisma.borrowRequest.findMany({
+          where: { userId: user.id, bookId: { in: bookIds }, status: 'pending' },
+          select: { bookId: true },
+        }),
+        prisma.loan.findMany({
+          where: { userId: user.id, bookId: { in: bookIds }, returnedAt: null },
+          select: { bookId: true },
+        }),
+      ]);
+      pendingBookIds = new Set(pendingRequests.map((r) => r.bookId));
+      activelyBorrowedBookIds = new Set(activeLoans.map((l) => l.bookId));
+    } catch (error) {
+      console.error('catalog: failed to load user borrow state, defaulting to empty:', error);
+    }
   }
 
   const statusMap: Record<string, string> = {
@@ -62,7 +66,7 @@ export default async function CatalogPage({ searchParams }: { searchParams: Prom
       <section className="relative mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8 space-y-8">
       <div className="text-center space-y-2">
         <p className="text-xs font-bold uppercase tracking-[0.3em] text-indigo-600">Katalog</p>
-        <h1 className="text-3xl font-bold text-slate-900 sm:text-4xl">Jelajahi Buku dari Kode 000 hingga 999</h1>
+        <h1 className="text-3xl font-bold text-slate-900 sm:text-4xl">Jelajahi Buku dari Nomor Inventaris 1 hingga 1000</h1>
       </div>
 
       <div className="flex justify-center w-full">
@@ -78,16 +82,16 @@ export default async function CatalogPage({ searchParams }: { searchParams: Prom
           <div className="sm:col-span-2">
             <input 
               name="start" 
-              defaultValue={params.start || '0'} 
-              placeholder="Mulai (000)" 
+              defaultValue={params.start || '1'} 
+              placeholder="Mulai (1)" 
               className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500" 
             />
           </div>
           <div className="sm:col-span-2">
             <input 
               name="end" 
-              defaultValue={params.end || '999'} 
-              placeholder="Akhir (999)" 
+              defaultValue={params.end || '1000'} 
+              placeholder="Akhir (1000)" 
               className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500" 
             />
           </div>
@@ -125,7 +129,7 @@ export default async function CatalogPage({ searchParams }: { searchParams: Prom
               <div>
                 <div className="flex items-start justify-between gap-4">
                   <div>
-                    <p className="text-sm font-semibold text-indigo-600">{String(book.catalogNumber).padStart(3, '0')}</p>
+                    <p className="text-sm font-semibold text-indigo-600">{book.nomorInventaris ?? '—'}</p>
                     <h2 className="text-lg font-semibold mt-1 text-slate-900 leading-snug">{book.title}</h2>
                     <p className="text-sm text-slate-500">Oleh {book.author}</p>
                   </div>

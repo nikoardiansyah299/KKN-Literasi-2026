@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { getCatalogBooks } from './data.ts';
+import { getCatalogBooks } from './data';
 
 test('getCatalogBooks returns fallback items when Prisma queries fail', async () => {
   const failingPrisma = {

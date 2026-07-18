@@ -20,3 +20,12 @@ a {
 button, input, textarea, select {
   font: inherit;
 }
+
+footer a {
+  color: #2563eb !important;
+}
+
+footer a:hover {
+  color: #1d4ed8 !important;
+  text-decoration: underline !important;
+}

@@ -18,7 +18,7 @@ export default async function BookDetailPage({ params }: { params: Promise<{ id:
       <div className="rounded-3xl border border-slate-200 bg-white p-8 shadow-sm">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
-            <p className="text-sm font-semibold uppercase tracking-[0.3em] text-indigo-600">{String(book.catalogNumber).padStart(3, '0')}</p>
+            <p className="text-sm font-semibold uppercase tracking-[0.3em] text-indigo-600">{book.nomorInventaris ?? '—'}</p>
             <h1 className="text-3xl font-semibold">{book.title}</h1>
             <p className="mt-2 text-lg text-slate-600">by {book.author}</p>
           </div>

@@ -23,11 +23,11 @@ export default async function SiteShell({ children }: { children: React.ReactNod
                 <span className="text-base font-semibold text-slate-900">KKN Literasi 2026</span>
               </div>
               <p className="text-sm text-slate-500 leading-relaxed">
-                Program digitalisasi perpustakaan desa untuk meningkatkan minat baca dan mempermudah akses literasi bagi seluruh masyarakat.
+                Website TBM dibuat oleh KKN Literasi 2026 untuk meningkatkan minat baca dan mempermudah akses literasi bagi seluruh masyarakat.
               </p>
               <div className="text-sm text-slate-500 space-y-1">
-                <p>📍 Kantor Desa Cangkringmalang</p>
-                <p>✉️ info@cangkringmalang.desa.id</p>
+                <p>📍 TBM Dewi Kencana</p>
+                <p>✉️ </p>
               </div>
             </div>
 
@@ -36,27 +36,27 @@ export default async function SiteShell({ children }: { children: React.ReactNod
               <h3 className="text-sm font-semibold text-slate-900 uppercase tracking-wider">Tautan Cepat</h3>
               <ul className="space-y-2 text-sm">
                 <li>
-                  <Link href="/" className="hover:text-indigo-600 transition">Beranda</Link>
+                  <Link href="/">Beranda</Link>
                 </li>
                 <li>
-                  <Link href="/catalog" className="hover:text-indigo-600 transition">Katalog Buku</Link>
+                  <Link href="/catalog">Katalog Buku</Link>
                 </li>
                 {user ? (
                   <>
                     <li>
-                      <Link href="/profile" className="hover:text-indigo-600 transition">Profil Saya</Link>
+                      <Link href="/profile">Profil Saya</Link>
                     </li>
                     <li>
-                      <Link href="/dashboard" className="hover:text-indigo-600 transition">Dashboard Peminjaman</Link>
+                      <Link href="/dashboard">Dashboard Peminjaman</Link>
                     </li>
                   </>
                 ) : (
                   <>
                     <li>
-                      <Link href="/login" className="hover:text-indigo-600 transition">Masuk</Link>
+                      <Link href="/login">Masuk</Link>
                     </li>
                     <li>
-                      <Link href="/register" className="hover:text-indigo-600 transition">Daftar</Link>
+                      <Link href="/register">Daftar</Link>
                     </li>
                   </>
                 )}
@@ -86,21 +86,21 @@ export default async function SiteShell({ children }: { children: React.ReactNod
               <h3 className="text-sm font-semibold text-slate-900 uppercase tracking-wider">Lokasi Kami</h3>
               <div className="overflow-hidden rounded-2xl border border-slate-200 shadow-sm bg-slate-50">
                 <iframe
-                  src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d247.18693813507187!2d112.73065080079769!3d-7.575956260345895!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x2dd7dd5d243b4285%3A0xcbf273dc82139d97!2sKantor%20Desa%20Cangkringmalang!5e0!3m2!1sid!2sid!4v1783583351551!5m2!1sid!2sid"
+                  src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d15820.012226321584!2d112.73259347304686!3d-7.574644011213139!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x2dd7dd0079abf8b7%3A0x1a00bf87d6cf98b5!2sTBM%20Dewi%20Kencana!5e0!3m2!1sid!2sid!4v1784291615828!5m2!1sid!2sid"
                   width="100%"
                   height="160"
                   style={{ border: 0 }}
                   allowFullScreen
                   loading="lazy"
                   referrerPolicy="strict-origin-when-cross-origin"
-                  title="Lokasi Kantor Desa Cangkringmalang"
+                  title="Lokasi TBM Dewi Kencana"
                 />
               </div>
             </div>
           </div>
 
           <div className="mt-12 border-t border-slate-100 pt-6 text-center text-xs text-slate-400">
-            <p>© {new Date().getFullYear()} KKN Literasi Perpustakaan Digital. All rights reserved.</p>
+            <p>© {new Date().getFullYear()} KKN Literasi TBM Dewi Kencana. All rights reserved.</p>
           </div>
         </div>
       </footer>

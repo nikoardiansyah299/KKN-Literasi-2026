@@ -71,11 +71,14 @@ export async function POST(request: NextRequest) {
           if (existing) { skipped++; continue; }
         }
 
+        const catalogNumberRaw = Number(item.catalogNumber) || 0;
+        const catalogNumber = catalogNumberRaw || (nomorInventaris ? (parseInt(nomorInventaris, 10) || 0) : 0);
+
         await prisma.book.create({
           data: {
             title: item.title?.trim() || 'Untitled',
             author: item.author?.trim() || '',
-            catalogNumber: Number(item.catalogNumber) || 0,
+            catalogNumber,
             totalCopies: Number(item.totalCopies) || 1,
             description: item.description?.trim() || '',
             location: item.location?.trim() || 'Main Collection',
@@ -149,12 +152,15 @@ export async function PATCH(request: NextRequest) {
     const tahunTerbit = body.tahunTerbit ? Number(body.tahunTerbit) : null;
     const nomorInventaris = body.nomorInventaris?.trim() || null;
 
+    const catalogNumberRaw = Number(body.catalogNumber) || 0;
+    const catalogNumber = catalogNumberRaw || (nomorInventaris ? (parseInt(nomorInventaris, 10) || 0) : 0);
+
     await prisma.book.update({
       where: { id },
       data: {
         title: body.title?.trim() || '',
         author: body.author?.trim() || '',
-        catalogNumber: Number(body.catalogNumber) || 0,
+        catalogNumber,
         totalCopies: Number(body.totalCopies) || 1,
         description: body.description?.trim() || '',
         location: body.location?.trim() || 'Main Collection',
@@ -197,11 +203,14 @@ export async function PUT(request: NextRequest) {
     const tahunTerbit = body.tahunTerbit ? Number(body.tahunTerbit) : null;
     const nomorInventaris = body.nomorInventaris?.trim() || null;
 
+    const catalogNumberRaw = Number(body.catalogNumber) || 0;
+    const catalogNumber = catalogNumberRaw || (nomorInventaris ? (parseInt(nomorInventaris, 10) || 0) : 0);
+
     const book = await prisma.book.create({
       data: {
         title: body.title?.trim() || 'Untitled',
         author: body.author?.trim() || '',
-        catalogNumber: Number(body.catalogNumber) || 0,
+        catalogNumber,
         totalCopies: Number(body.totalCopies) || 1,
         description: body.description?.trim() || '',
         location: body.location?.trim() || 'Main Collection',

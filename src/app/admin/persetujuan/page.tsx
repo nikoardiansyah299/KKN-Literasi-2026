@@ -220,7 +220,7 @@ export default async function PersetujuanPage({
                   <option value="">-- Pilih Buku --</option>
                   {books.map((book) => (
                     <option key={book.id} value={book.id}>
-                      [{String(book.catalogNumber).padStart(3, '0')}] {book.title}
+                      [{book.nomorInventaris ?? '—'}] {book.title}
                     </option>
                   ))}
                 </select>
