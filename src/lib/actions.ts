@@ -278,12 +278,11 @@ export async function rejectBorrowRequest(id: number) {
 export async function createOfflineLoan(formData: FormData) {
   const adminUser = await getSessionUserOrRedirect('admin');
   const borrowerName = String(formData.get('borrowerName') || '').trim();
-  const bookId = Number(formData.get('bookId'));
   const borrowDateStr = String(formData.get('borrowDate') || '').trim();
   const dueDateStr = String(formData.get('dueDate') || '').trim();
+  const booksJson = String(formData.get('books') || '[]').trim();
 
   if (!borrowerName) throw new Error('Nama peminjam wajib diisi');
-  if (!bookId) throw new Error('Buku wajib dipilih');
   if (!borrowDateStr) throw new Error('Tanggal pinjam wajib diisi');
   if (!dueDateStr) throw new Error('Tanggal kembali wajib diisi');
 
@@ -293,7 +292,16 @@ export async function createOfflineLoan(formData: FormData) {
   if (isNaN(borrowDate.getTime())) throw new Error('Tanggal pinjam tidak valid');
   if (isNaN(dueDate.getTime())) throw new Error('Tanggal kembali tidak valid');
 
-  // Find or create user
+  type BookItem = { bookId?: number; title?: string; amount: number };
+  let bookItems: BookItem[] = [];
+  try {
+    bookItems = JSON.parse(booksJson);
+  } catch {
+    throw new Error('Data buku tidak valid');
+  }
+  if (!bookItems.length) throw new Error('Minimal satu buku harus diisi');
+
+  // Find or create borrower user record
   let userRecord = await prisma.user.findFirst({
     where: { name: { equals: borrowerName, mode: 'insensitive' } }
   });
@@ -302,29 +310,58 @@ export async function createOfflineLoan(formData: FormData) {
     const sanitized = borrowerName.toLowerCase().replace(/[^a-z0-9]/g, '');
     const email = `offline-${sanitized}-${Date.now()}@library.offline`;
     userRecord = await prisma.user.create({
-      data: {
-        name: borrowerName,
-        email,
-        role: 'user'
-      }
+      data: { name: borrowerName, email, role: 'user' }
     });
   }
 
-  // Check if book exists
-  const book = await prisma.book.findUnique({ where: { id: bookId } });
-  if (!book) throw new Error('Buku tidak ditemukan');
+  // Create one loan entry per book item (amount copies)
+  for (const item of bookItems) {
+    const amount = Math.max(Number(item.amount) || 1, 1);
+    let resolvedBookId: number;
 
-  // Create the loan
-  await prisma.loan.create({
-    data: {
-      userId: userRecord.id,
-      bookId,
-      dueDate,
-      createdAt: borrowDate
+    if (item.bookId) {
+      const book = await prisma.book.findUnique({ where: { id: item.bookId } });
+      if (!book) throw new Error(`Buku dengan ID ${item.bookId} tidak ditemukan`);
+      resolvedBookId = book.id;
+    } else if (item.title) {
+      // Create a placeholder book for manually entered titles
+      const existing = await prisma.book.findFirst({
+        where: { title: { equals: item.title.trim(), mode: 'insensitive' } }
+      });
+      if (existing) {
+        resolvedBookId = existing.id;
+      } else {
+        const newBook = await prisma.book.create({
+          data: {
+            title: item.title.trim(),
+            author: 'Manual Entry',
+            catalogNumber: 0,
+            totalCopies: amount,
+            description: '',
+            location: 'Manual / Offline',
+          }
+        });
+        resolvedBookId = newBook.id;
+      }
+    } else {
+      throw new Error('Setiap buku harus memiliki judul atau dipilih dari katalog');
     }
-  });
 
-  await createAuditLog(adminUser.id, 'offline_loan_create', `Created offline loan for ${borrowerName} - Book: ${book.title}`);
+    // Create `amount` loan records for this book
+    for (let i = 0; i < amount; i++) {
+      await prisma.loan.create({
+        data: {
+          userId: userRecord.id,
+          bookId: resolvedBookId,
+          dueDate,
+          createdAt: borrowDate,
+        }
+      });
+    }
+  }
+
+  const bookSummary = bookItems.map(b => b.title || `Book #${b.bookId}`).join(', ');
+  await createAuditLog(adminUser.id, 'offline_loan_create', `Offline loan for ${borrowerName}: ${bookSummary}`);
   revalidatePath('/admin');
   revalidatePath('/admin/persetujuan');
 }

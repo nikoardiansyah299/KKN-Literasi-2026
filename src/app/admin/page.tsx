@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { getAdminDashboardData } from '@/lib/data';
-import { approveBorrowRequest, rejectBorrowRequest, returnLoan, createBook, deleteBook } from '@/lib/actions';
+import { approveBorrowRequest, rejectBorrowRequest, returnLoan, deleteBook } from '@/lib/actions';
+import OfflineLoanForm from '@/components/offline-loan-form';
 
 export default async function AdminPage() {
   const data = await getAdminDashboardData();
@@ -48,49 +49,21 @@ export default async function AdminPage() {
       <div className="grid gap-6 lg:grid-cols-2">
         {/* Left Column: Form & Inventory */}
         <div className="space-y-6">
-          {/* Add or update book */}
+          {/* Pinjam Buku Manual */}
           <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-            <h2 className="text-sm font-bold uppercase tracking-wider text-slate-800">Tambah Buku Baru</h2>
-            <form action={createBook} className="mt-4 grid gap-3 sm:grid-cols-2">
-              <input 
-                name="title" 
-                placeholder="Judul Buku" 
-                className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 focus:border-indigo-500 focus:outline-none placeholder:text-slate-400 focus:ring-2 focus:ring-indigo-500/20" 
-                required 
-              />
-              <input 
-                name="author" 
-                placeholder="Penulis / Pengarang" 
-                className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 focus:border-indigo-500 focus:outline-none placeholder:text-slate-400 focus:ring-2 focus:ring-indigo-500/20" 
-                required 
-              />
-              <input 
-                name="catalogNumber" 
-                placeholder="Nomor Katalog (misal: 100)" 
-                className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 focus:border-indigo-500 focus:outline-none placeholder:text-slate-400 focus:ring-2 focus:ring-indigo-500/20" 
-                required 
-              />
-              <input 
-                name="totalCopies" 
-                placeholder="Jumlah Salinan" 
-                className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 focus:border-indigo-500 focus:outline-none placeholder:text-slate-400 focus:ring-2 focus:ring-indigo-500/20" 
-                required 
-              />
-              <input 
-                name="location" 
-                placeholder="Lokasi (misal: Rak A)" 
-                className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 focus:border-indigo-500 focus:outline-none placeholder:text-slate-400 focus:ring-2 focus:ring-indigo-500/20 sm:col-span-2" 
-              />
-              <textarea 
-                name="description" 
-                placeholder="Deskripsi Singkat Buku" 
-                rows={2} 
-                className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 focus:border-indigo-500 focus:outline-none placeholder:text-slate-400 focus:ring-2 focus:ring-indigo-500/20 sm:col-span-2" 
-              />
-              <button className="w-full sm:col-span-2 rounded-full bg-indigo-600 px-4 py-2 text-xs font-semibold text-white hover:bg-indigo-700 transition cursor-pointer">
-                Tambah Buku
-              </button>
-            </form>
+            <div className="flex items-center gap-2 mb-1">
+              <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-indigo-100 text-indigo-600 text-xs">📋</span>
+              <h2 className="text-sm font-bold uppercase tracking-wider text-slate-800">Pinjam Buku Manual</h2>
+            </div>
+            <p className="text-xs text-slate-500">Catat peminjaman buku secara offline / langsung di perpustakaan.</p>
+            <OfflineLoanForm
+              books={data.books.map((b) => ({
+                id: b.id,
+                title: b.title,
+                author: b.author,
+                nomorInventaris: b.nomorInventaris ?? null,
+              }))}
+            />
           </div>
 
           {/* Inventory */}
